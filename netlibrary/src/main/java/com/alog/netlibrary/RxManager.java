@@ -19,16 +19,5 @@ public class RxManager {
     }
 
     public void getNet() {
-        Observable.create(new ObservableOnSubscribe<Object>() {
-            @Override
-            public void subscribe(ObservableEmitter<Object> emitter) throws Exception {
-                emitter.onNext(1);
-            }
-        }).subscribe(new Consumer<Object>() {
-            @Override
-            public void accept(Object o) throws Exception {
-                Log.d("11", o + "");
-            }
-        });
     }
 }
