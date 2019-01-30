@@ -1,11 +1,5 @@
 package com.alog.netlibrary;
 
-import android.util.Log;
-
-import io.reactivex.Observable;
-import io.reactivex.ObservableEmitter;
-import io.reactivex.ObservableOnSubscribe;
-import io.reactivex.functions.Consumer;
 
 /**
  * @author: yuanbing
