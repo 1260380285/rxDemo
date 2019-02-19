@@ -1,3 +1,5 @@
 <resources>
     <string name="app_name">rxDemo</string>
+    <string name="channel">channel</string>
+    <string name="channel_des">channel_des</string>
 </resources>
