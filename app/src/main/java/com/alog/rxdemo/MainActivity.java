@@ -1,19 +1,26 @@
 package com.alog.rxdemo;
 
 
+import android.app.AppOpsManager;
 import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
+import android.content.Context;
 import android.content.Intent;
+import android.content.pm.ApplicationInfo;
 import android.graphics.Color;
 import android.os.Build;
 import android.os.Bundle;
+import android.provider.Settings;
 import android.util.Log;
 import android.view.View;
+import android.widget.Toast;
 
 import com.alog.netlibrary.RxManager;
 
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import java.util.UUID;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -36,16 +43,59 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 Log.d("test", "onclick");
-                show();
+                boolean notificationEnable = isNotificationEnable(MainActivity.this);
+                checkPermission();
+                if (notificationEnable) {
+                    show();
+                } else {
+
+                }
+
             }
         });
     }
 
+    private void checkPermission(){
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            NotificationChannel channel = getInstance().getNotificationChannel(id);
+            if (channel.getImportance() == NotificationManager.IMPORTANCE_NONE) {
+                Intent intent = new Intent(Settings.ACTION_CHANNEL_NOTIFICATION_SETTINGS);
+                intent.putExtra(Settings.EXTRA_APP_PACKAGE, getPackageName());
+                intent.putExtra(Settings.EXTRA_CHANNEL_ID, channel.getId());
+                startActivity(intent);
+                Toast.makeText(this, "请手动将通知打开1", Toast.LENGTH_SHORT).show();
+            }else{
+                Toast.makeText(this, "请手动将通知打开2", Toast.LENGTH_SHORT).show();
+            }
+        }else{
 
+        }
+    }
 
+    private boolean isNotificationEnable(Context context) {
+        AppOpsManager mAppOps = (AppOpsManager) context.getSystemService(APP_OPS_SERVICE);
+        ApplicationInfo appInfo = context.getApplicationInfo();
+
+        String pkg = context.getApplicationContext().getPackageName();
+        int uid = appInfo.uid;
+        Class appOpsClass = null;
+        try {
+            appOpsClass = Class.forName(AppOpsManager.class.getName());
+            Method checkOpNoThrowMethod = appOpsClass.getMethod("checkOpNoThrow", Integer.TYPE, Integer.TYPE, String.class);
+            Field opPostNotificationValue = appOpsClass.getDeclaredField("OP_POST_NOTIFICATION");
+            int value = (int) opPostNotificationValue.get(Integer.class);
+            return ((int) checkOpNoThrowMethod.invoke(mAppOps, value, uid, pkg) == AppOpsManager.MODE_ALLOWED);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return true;
+    }
+
+    //https://mp.weixin.qq.com/s?__biz=MzA5MzI3NjE2MA==&mid=2650242841&idx=1&sn=6fd0a578a8ff35902d409ae01fbabc9f&scene=19#wechat_redirect
     private NotificationManager getInstance() {
-        if (notificationManager == null)
+        if (notificationManager == null) {
             notificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
+        }
         return notificationManager;
     }
 
@@ -60,6 +110,7 @@ public class MainActivity extends AppCompatActivity {
             NotificationChannel mChannel = new NotificationChannel(id, name, importance);
             // 配置通知渠道的属性
             mChannel.setDescription(description);
+            mChannel.enableVibration(false);
             getInstance().createNotificationChannel(mChannel);
         }
     }
